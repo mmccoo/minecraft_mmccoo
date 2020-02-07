@@ -34,29 +34,6 @@ int map_compare(const T &a, const T &b)
     return 0;
 }
 
-// this was an attempt to do a map with block_type as a lookup key. It didn't work. don't know
-// why. didn't feel like debugging, but it bugs me that I don't know why it didn't work.
-struct cmpPalettes {
-    bool operator()(const BlockType& a, const BlockType& b) const {
-        if ((a.name == "minecraft:stone") && ((*(a.string_properties.find("stone_type"))).second == "granite") &&
-            (b.name == "minecraft:stone") && ((*(b.string_properties.find("stone_type"))).second == "granite")) {
-            std::cout << "granite\n";
-        }
-
-        if (a.name != b.name) { return a.name.compare(b.name); }
-
-        int c = map_compare(a.byte_properties, b.byte_properties);
-        if (c != 0) { return c==-1; }
-
-        c = map_compare(a.int_properties, b.int_properties);
-        if (c != 0) { return c==-1; }
-
-        c = map_compare(a.string_properties, b.string_properties);
-        if (c != 0) { return c==-1; }
-
-        return false;
-    }
-};
 
 static std::map<std::string, int> palette;
 static std::vector<BlockType> bt_by_id;
@@ -89,7 +66,7 @@ void BlockType::add_block_type(BlockType &bt)
     bt_by_id.push_back(bt);
 }
 
-BlockType& BlockType::get_block_type_by_id(int id)
+BlockType& BlockType::get_block_type_by_id(unsigned int id)
 {
     //std::cout << "id " << id << " " << bt_by_id.size() << "\n";
     assert(id<=bt_by_id.size());
@@ -146,32 +123,8 @@ std::string BlockType::lookup_string() const
 std::string BlockType::get_string() const
 {
     std::stringstream ss;
-    ss << name << " (";
+    ss << name << NBTObject::get_string();
 
-    bool first = true;
-    for(auto elt : byte_properties) {
-        if (!first) {
-            ss << ", ";
-        }
-        first = false;
-        ss << elt.first << ":" << std::hex << static_cast<int>(elt.second) << std::dec;
-    }
-    for(auto elt : int_properties) {
-        if (!first) {
-            ss << ", ";
-        }
-        first = false;
-        ss << elt.first << ":" << std::hex << elt.second << std::dec;
-    }
-    for(auto elt : string_properties) {
-        if (!first) {
-            ss << ", ";
-        }
-        first = false;
-        ss << elt.first << ":" << elt.second;
-    }
-
-    ss << ")";
     return ss.str();
 }
 

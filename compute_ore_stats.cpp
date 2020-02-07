@@ -65,7 +65,7 @@ show_ore_stats(MinecraftWorld &world,
     for(auto t : cats) {
         std::cout << t.first << "\n";
         for(auto iter : t.second) {
-            std::cout << "  " << BlockType::get_block_type_by_id(iter.first).name << " " << iter.second << "\n";
+            std::cout << "  " << BlockType::get_block_type_by_id(iter.first).get_name() << " " << iter.second << "\n";
         }
     }
 

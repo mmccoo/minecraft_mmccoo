@@ -3,6 +3,53 @@
 #include <MinecraftWorld.h>
 #include <cassert>
 #include <set>
+#include <fstream>
+#include <cmath>
+
+void MinecraftWorld::write_world_js(std::string filename)
+{
+
+    int xcl, xch, zcl, zch;
+    bool first = true;
+
+    // I'm iterating on chunk biomes because world.js was originally used to
+    // bound biome image tiles display
+    for(auto it1 : chunk_biomes) {
+        int chunkx = it1.first;
+        for(auto it2 : it1.second) {
+            int chunkz = it2.first;
+            if (first) {
+                xcl = xch = chunkx;
+                zcl = zch = chunkz;
+                first = false;
+            } else {
+                xcl = std::min(xcl, chunkx);
+                xch = std::max(xch, chunkx);
+                zcl = std::min(zcl, chunkz);
+                zch = std::max(zch, chunkz);
+            }
+        }
+    }
+
+    const int max_tile_level = std::ceil(log(std::max(xch-xcl, zch-zcl))/log(2));
+
+    std::ofstream file;
+    file.open(filename);
+    file << "const world_info = {\n";
+    file << "  chunk_xl: " << xcl << ",\n";
+    file << "  chunk_zl: " << zcl << ",\n";
+    file << "  chunk_xh: " << xch << ",\n";
+    file << "  chunk_zh: " << zch << ",\n";
+    file << "  max_tile_level: " << max_tile_level << ",\n";
+    file << "  tile_0_size: " << pow(2, max_tile_level)*16 << ",\n";
+
+    file << "  eojson: 1\n";
+    file << "}\n";
+    file << "exports.info = world_info;\n";
+
+    file.close();
+
+}
 
 void real_to_chunk(int realcoord, int &chunkcoord, int &offset)
 {
@@ -91,4 +138,16 @@ MinecraftWorld::get_sub_chunk(int chunkx, int chunky, int chunkz)
     subchunk.chunky = chunky;
     subchunk.chunkz = chunkz;
     return subchunk;
+}
+
+
+void MinecraftWorld::populate_entity_table()
+{
+    for(auto it1 : chunk_entities) {
+        for(auto it2 : it1.second) {
+            for(auto entity : it2.second) {
+                entities_by_id[entity->get_unique_id()] = entity;
+            }
+        }
+    }
 }

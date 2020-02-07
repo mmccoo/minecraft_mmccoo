@@ -14,6 +14,6 @@ public:
     void write(std::string filename);
 
 private:
-    std::map<int, PolygonSet> polysets;
+    std::map<int, PolygonHolesSet> polysets;
 
 };

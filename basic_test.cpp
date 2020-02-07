@@ -53,6 +53,7 @@ int main(int argc, char** argv) {
 #endif
 
     world.write_world_js("world.js");
+    write_biome_properties("biomeproperties.js");
 
     {
         BiomeVectors bvectors;
@@ -66,7 +67,8 @@ int main(int argc, char** argv) {
         bvectors.write("biomes.json");
     }
 
-    {
+    // elevation stuff generates really large files. 100MB+ for a not that large world.
+    if (0) {
         ElevationVectors evectors;
         for(auto it1 : world.chunk_elevation) {
             int chunkx = it1.first;
@@ -75,6 +77,7 @@ int main(int argc, char** argv) {
                 int chunkz = it2.first;
                 //if (chunkz%2) { continue; }
                 evectors.add_chunk(chunkx, chunkz, it2.second);
+#if 0
                 std::cout << "elevactions for " << chunkx << ", " << chunkz << "\n";
                 for(int z=0; z<16; z++) {
                     for(int x=0; x<16; x++) {
@@ -83,6 +86,7 @@ int main(int argc, char** argv) {
                     std::cout << "\n";
                 }
                 std::cout << "\n";
+#endif
             }
         }
         evectors.write("elevations.json");
