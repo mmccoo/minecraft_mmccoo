@@ -1,6 +1,6 @@
 
 // for this to work:
-// you need the following run results from basic_test:
+// you need the following run results from basic_test (basically, you juse run basic_test in this dir):
 // biomeproperties.js
 // world.js
 // dist/biomes.json
@@ -10,6 +10,10 @@
 
 // in this directory, do
 // npm install
+// npm start
+//
+// if you want to host on apache2, do
+// npm run build
 
 import 'ol/ol.css';
 import {Map, View, proj} from 'ol';

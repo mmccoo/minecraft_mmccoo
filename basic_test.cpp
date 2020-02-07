@@ -10,6 +10,7 @@
 
 #include <fstream>
 #include <iomanip>
+#include <boost/filesystem.hpp>
 
 #define UNUSED(x) (void)(x)
 
@@ -55,6 +56,7 @@ int main(int argc, char** argv) {
     world.write_world_js("world.js");
     write_biome_properties("biomeproperties.js");
 
+    boost::filesystem::create_directory("dist");
     {
         BiomeVectors bvectors;
         for(auto it1 : world.chunk_biomes) {
@@ -78,7 +80,7 @@ int main(int argc, char** argv) {
                 //if (chunkz%2) { continue; }
                 evectors.add_chunk(chunkx, chunkz, it2.second);
 #if 0
-                std::cout << "elevactions for " << chunkx << ", " << chunkz << "\n";
+                std::cout << "elevations for " << chunkx << ", " << chunkz << "\n";
                 for(int z=0; z<16; z++) {
                     for(int x=0; x<16; x++) {
                         std::cout << std::setw(4) << it2.second[x][z] << " ";
@@ -89,7 +91,7 @@ int main(int argc, char** argv) {
 #endif
             }
         }
-        evectors.write("elevations.json");
+        evectors.write("dist/elevations.json");
     }
 
     world.populate_entity_table();
