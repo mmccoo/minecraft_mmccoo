@@ -3,3 +3,6 @@
 *.Td
 *.csv
 *.vtk
+web_stuff/biomeproperties.js
+web_stuff/world.js
+web_stuff/dist

@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
                 bvectors.add_chunk(chunkx, chunkz, it2.second);
             }
         }
-        bvectors.write("biomes.json");
+        bvectors.write("dist/biomes.json");
     }
 
     // elevation stuff generates really large files. 100MB+ for a not that large world.
@@ -94,11 +94,11 @@ int main(int argc, char** argv) {
 
     world.populate_entity_table();
 
-    GenerateVillageJSON(world, "villages.json");
+    GenerateVillageJSON(world, "dist/villages.json");
 
-    GenerateEntityJSON(world, "entities.json");
+    GenerateEntityJSON(world, "dist/entities.json");
 
-    GenerateBlockEntityJSON(world, "block_entities.json");
+    GenerateBlockEntityJSON(world, "dist/block_entities.json");
 
     return 0;
 }
