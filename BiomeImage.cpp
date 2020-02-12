@@ -4,6 +4,9 @@
 #include <biome.h>
 
 #include <Magick++.h>
+// I really don't like using namespace... I prefer to fully qualify.
+// but it won't compile without.
+using namespace Magick;
 
 #include <sstream>
 #include <fstream>
