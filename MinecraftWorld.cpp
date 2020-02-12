@@ -6,7 +6,14 @@
 #include <fstream>
 #include <cmath>
 
-void MinecraftWorld::write_world_js(std::string filename)
+
+//https://github.com/nlohmann/json#json-as-first-class-data-type
+// this json header is copied from the above github. I don't know how to include
+// a single file as a submodule and the git report itself is pretty large.
+#include <nlohmann/json.hpp>
+
+
+void MinecraftWorld::write_world_json(std::string filename)
 {
 
     int xcl, xch, zcl, zch;
@@ -31,24 +38,21 @@ void MinecraftWorld::write_world_js(std::string filename)
         }
     }
 
+    nlohmann::json top;
+
     const int max_tile_level = std::ceil(log(std::max(xch-xcl, zch-zcl))/log(2));
+
+    top["chunk_xl"] = xcl;
+    top["chunk_zl"] = zcl;
+    top["chunk_xh"] = xch;
+    top["chunk_zh"] = zch;
+    top["max_tile_level"] = max_tile_level;
+    top["tile_0_size"] = pow(2, max_tile_level)*16;
 
     std::ofstream file;
     file.open(filename);
-    file << "const world_info = {\n";
-    file << "  chunk_xl: " << xcl << ",\n";
-    file << "  chunk_zl: " << zcl << ",\n";
-    file << "  chunk_xh: " << xch << ",\n";
-    file << "  chunk_zh: " << zch << ",\n";
-    file << "  max_tile_level: " << max_tile_level << ",\n";
-    file << "  tile_0_size: " << pow(2, max_tile_level)*16 << ",\n";
-
-    file << "  eojson: 1\n";
-    file << "}\n";
-    file << "exports.info = world_info;\n";
-
+    file << top.dump(2);
     file.close();
-
 }
 
 void real_to_chunk(int realcoord, int &chunkcoord, int &offset)

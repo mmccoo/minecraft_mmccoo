@@ -1,0 +1,20 @@
+diff --git a/db/snappy_compressor.cc b/db/snappy_compressor.cc
+index 93860fd..64f33c4 100644
+--- a/db/snappy_compressor.cc
++++ b/db/snappy_compressor.cc
+@@ -3,7 +3,7 @@
+ 
+ #include "leveldb/snappy_compressor.h"
+ 
+-#include <snappy/snappy.h>
++#include <snappy.h>
+ 
+ namespace leveldb {
+ 	void SnappyCompressor::compressImpl(const char* input, size_t length, ::std::string& output) const
+@@ -27,4 +27,4 @@ namespace leveldb {
+ 
+ }
+ 
+-#endif
+\ No newline at end of file
++#endif

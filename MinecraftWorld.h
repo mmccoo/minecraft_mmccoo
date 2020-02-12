@@ -15,7 +15,7 @@
 
 class MinecraftWorld {
   public:
-    void write_world_js(std::string filename);
+    void write_world_json(std::string filename);
 
 
     std::map<int, std::map<int, std::map<int, SubChunk> > > theworld;

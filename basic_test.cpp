@@ -53,10 +53,13 @@ int main(int argc, char** argv) {
     }
 #endif
 
-    world.write_world_js("world.js");
-    write_biome_properties("biomeproperties.js");
 
-    boost::filesystem::create_directory("dist");
+    boost::filesystem::create_directory("map");
+
+    world.write_world_json("map/world.json");
+    write_biome_properties("map/biomeproperties.json");
+
+
     {
         BiomeVectors bvectors;
         for(auto it1 : world.chunk_biomes) {
@@ -66,7 +69,7 @@ int main(int argc, char** argv) {
                 bvectors.add_chunk(chunkx, chunkz, it2.second);
             }
         }
-        bvectors.write("dist/biomes.json");
+        bvectors.write("map/biomes.json");
     }
 
     // elevation stuff generates really large files. 100MB+ for a not that large world.
@@ -91,16 +94,16 @@ int main(int argc, char** argv) {
 #endif
             }
         }
-        evectors.write("dist/elevations.json");
+        evectors.write("map/elevations.json");
     }
 
     world.populate_entity_table();
 
-    GenerateVillageJSON(world, "dist/villages.json");
+    GenerateVillageJSON(world, "map/villages.json");
 
-    GenerateEntityJSON(world, "dist/entities.json");
+    GenerateEntityJSON(world, "map/entities.json");
 
-    GenerateBlockEntityJSON(world, "dist/block_entities.json");
+    GenerateBlockEntityJSON(world, "map/block_entities.json");
 
     return 0;
 }

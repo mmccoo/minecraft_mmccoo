@@ -11,7 +11,7 @@ all: type_mst basic_test show_clusters write_top
 OPT = -ggdb3
 #OPT = -O2 -ggdb3
 
-CPPFLAGS = -Wall -std=c++17 $(OPT) -pthread -DDLLX= -I. -I/bubba/electronicsDS/minecraft/leveldb-mcpe/include -fno-builtin-memcmp -pthread -DOS_LINUX -DLEVELDB_PLATFORM_POSIX -DLEVELDB_ATOMIC_PRESENT -DSNAPPY
+CPPFLAGS = -Wall -std=c++17 $(OPT) -pthread -DDLLX= -I. -I../leveldb-mcpe/include -fno-builtin-memcmp -pthread -DOS_LINUX -DLEVELDB_PLATFORM_POSIX -DLEVELDB_ATOMIC_PRESENT -DSNAPPY
 
 LDDFLAGS = -lleveldb -lsnappy -lpthread -lz -lboost_filesystem
 
@@ -28,7 +28,7 @@ COMMON_OBJS := parse_bedrock.o MinecraftWorld.o BlockType.o SubChunk.o polygon.o
 	g++ $(CPPFLAGS) $(IMAGICK_CPP) $(DEPFLAGS) -c -o $@ $<
 
 basic_test: basic_test.o $(COMMON_OBJS)
-	g++ $(OPT) $(IMAGICK_LDD) -L/bubba/electronicsDS/minecraft/leveldb-mcpe/out-static/ -o $@ $^ $(LDDFLAGS)
+	g++ $(OPT) $(IMAGICK_LDD) -L../leveldb-mcpe/out-static/ -o $@ $^ $(LDDFLAGS)
 
 
 

@@ -2,11 +2,16 @@
 
 #include <biome.h>
 
+//https://github.com/nlohmann/json#json-as-first-class-data-type
+// this json header is copied from the above github. I don't know how to include
+// a single file as a submodule and the git report itself is pretty large.
+#include <nlohmann/json.hpp>
+
 #include <map>
 #include <iostream>
 #include <fstream>
 
-
+// if you change this, make sure to update biomeproperties.js in web_stuff/map
 Biome Biomes[] = {
     {"Ocean", 0,  {2,0,107}},
     {"Plains", 1, {140,178,100}},
@@ -109,19 +114,15 @@ const Biome &get_biome(int id) {
 
 void write_biome_properties(std::string filename)
 {
-    std::ofstream colors;
-    colors.open(filename);
-
-    colors << "var biome_colors = {\n";
-
+    nlohmann::json top;
     for(Biome &b : Biomes) {
-        colors << "  " << b.name << ": " << "[" << b.color.r << ", " << b.color.g << ", " << b.color.b << "],\n";
+        top["biome_colors"][b.name].push_back(b.color.r);
+        top["biome_colors"][b.name].push_back(b.color.g);
+        top["biome_colors"][b.name].push_back(b.color.b);
     }
-    colors << "};\n";
 
-    colors << "exports.biome_colors = biome_colors;\n";
-
-    colors.close();
-
-
+    std::ofstream file;
+    file.open(filename);
+    file << top.dump(2);
+    file.close();
 }
