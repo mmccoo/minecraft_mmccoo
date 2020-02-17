@@ -26,7 +26,7 @@ endif
 DEPFLAGS = -MT $@ -MMD -MP -MF $*.Td
 CPPFLAGS += $(DEPFLAGS)
 
-COMMON_OBJS := parse_bedrock.o MinecraftWorld.o BlockType.o SubChunk.o polygon.o biome.o BiomeVectors.o BiomeImage.o NBTObject.o EntityJSON.o BlockEntityJSON.o VillageJSON.o ElevationVectors.o
+COMMON_OBJS := parse_bedrock.o MinecraftWorld.o BlockType.o SubChunk.o polygon.o biome.o BiomeVectors.o BiomeImage.o NBTObject.o EntityJSON.o BlockEntityJSON.o VillageJSON.o ElevationVectors.o CaveVectors.o ResourceVectors.o
 
 %.o:%.cpp
 	echo IMAGIC $(IMAGICK_CPP)

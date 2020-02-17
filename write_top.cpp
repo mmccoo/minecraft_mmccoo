@@ -85,7 +85,7 @@ main(int argc,char* argv[])
               //int chunkz = sciz.first;
               auto sc = sciz.second;
 
-              for (auto iter=sc.begin(); iter!=sc.end(); ++iter) {
+              for (auto iter=sc->begin(); iter!=sc->end(); ++iter) {
                   auto loc = *iter;
                   uint8_t blocktype = loc.type;
                   if (blocktype == stairs_id) {

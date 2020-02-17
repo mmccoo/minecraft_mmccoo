@@ -197,6 +197,7 @@ class EntityType : public NBTObject {
   public:
     std::string get_type() { return type; };
     long get_unique_id() { return unique_id; };
+    std::string get_name() { return name; };
 
     EquipmentType &get_armor(int id)  {
         assert(sizeof(armor)/sizeof(armor[0]) > (long unsigned int) id);
@@ -225,6 +226,8 @@ class EntityType : public NBTObject {
     void add_string(std::string tagname, std::string value) override {
         if (tagname == "identifier") {
             type = value;
+        } else if ((tagname == "name") || (tagname == "Name")) {
+            name = value;
         } else {
             NBTObject::add_string(tagname, value);
         }
@@ -254,6 +257,7 @@ class EntityType : public NBTObject {
     EquipmentType off_hand;
     DefinitionsType definitions;
     std::string type;
+    std::string name;
     long        unique_id;
 
 };

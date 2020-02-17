@@ -40,13 +40,18 @@ void GenerateEntityJSON(MinecraftWorld &world, std::string filename)
                 }
                 std::cout << "\n";;
 
-                if (entity->get_type() == "minecraft:item") {
-                    std::cout << "more info " << entity->get_string() << "\n";
-                }
                 boost::property_tree::ptree feature_node;
 
                 feature_node.put("type", "Feature");
                 feature_node.put("properties.type", entity->get_type());
+
+                if (entity->get_type() == "minecraft:item") {
+                    std::cout << "more info " << entity->get_string() << "\n";
+                    feature_node.put("properties.item_type", entity->get_name());
+                    if (entity->get_name() == "") {
+                        std::cout << "no subtype\n";
+                    }
+                }
 
                 // this seems like a goofy way to have a list.
                 boost::property_tree::ptree coords;

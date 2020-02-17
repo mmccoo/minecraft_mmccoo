@@ -8,6 +8,8 @@ web_stuff/dist/web_stuff.*.js.map
 web_stuff/dist/web_stuff.*.js
 web_stuff/dist/web_stuff.*.css
 web_stuff/dist/web_stuff.*.css.map
+web_stuff/dist/index.js
+web_stuff/dist/index.js.map
 web_stuff/dist/index.html
 web_stuff/node_modules
 web_stuff/.cache

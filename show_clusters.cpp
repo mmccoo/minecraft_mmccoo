@@ -133,7 +133,7 @@ main(int argc,char* argv[])
                   //int chunkz = sciz.first;
                   auto sc = sciz.second;
 
-                  for (auto iter=sc.begin(ore_id); iter!=sc.end(); ++iter) {
+                  for (auto iter=sc->begin(ore_id); iter!=sc->end(); ++iter) {
                       auto loc = *iter;
                       ores.push_back({loc.x, loc.y, loc.z});
                       level_stats[layer.second][loc.y]++;

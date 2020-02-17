@@ -12,6 +12,69 @@
 // a single file as a submodule and the git report itself is pretty large.
 #include <nlohmann/json.hpp>
 
+void MinecraftWorld::populate_extra()
+{
+    for (auto scix : theworld) {
+        int chunkx = scix.first;
+        UNUSED(chunkx);
+        for (auto sciy : scix.second) {
+            int chunky = sciy.first;
+            UNUSED(chunky);
+            for (auto sciz : sciy.second) {
+                int chunkz = sciz.first;
+                UNUSED(chunkz);
+                auto sc = sciz.second;
+
+                chunks_by_y[chunkx][chunkz][chunky] = sc;
+            }
+        }
+    }
+
+
+    for (auto scix : chunks_by_y) {
+        int chunkx = scix.first;
+        UNUSED(chunkx);
+        for (auto sciz : scix.second) {
+            int chunkz = sciz.first;
+            UNUSED(chunkz);
+
+
+            // This is the highed elevation of a stone or dirt block at each location.
+            Grid16 &chunk_top_earthly = top_earthly[chunkx][chunkz];
+
+            for (auto sciy : sciz.second) {
+                int chunky = sciy.first;
+                UNUSED(chunky);
+                auto sc = sciy.second;
+                for (auto iter=sc->begin(); iter!=sc->end(); ++iter) {
+                    auto loc = *iter;
+
+                    BlockType bt = BlockType::get_block_type_by_id(loc.type);
+
+                    // The loc has real world coords.
+                    int rawx = loc.x - chunkx*16;
+                    int rawz = loc.z - chunkz*16;
+
+                    if (bt.is_earthly()) {
+                        chunk_top_earthly[rawx][rawz] = std::max(chunk_top_earthly[rawx][rawz], loc.y);
+                    }
+                }
+            }
+
+#if 0
+            std::cout << "for " << chunkx << ", " << chunkz << "\n";
+            for(int x=0; x<16; x++) {
+                std::cout << "x";
+                for(int z=0; z<16; z++) {
+                    std::cout << " " << chunk_top_earthly[x][z];
+                }
+                std::cout << "\n";
+            }
+#endif
+        }
+    }
+
+}
 
 void MinecraftWorld::write_world_json(std::string filename)
 {
@@ -48,6 +111,7 @@ void MinecraftWorld::write_world_json(std::string filename)
     top["chunk_zh"] = zch;
     top["max_tile_level"] = max_tile_level;
     top["tile_0_size"] = pow(2, max_tile_level)*16;
+    top["y_resolution"] = y_resolution;
 
     std::ofstream file;
     file.open(filename);
@@ -98,12 +162,12 @@ MinecraftWorld::set_type_at(int realx, int realy, int realz, uint8_t type)
     int chunkz, z;
     real_to_chunk(realz, chunkz, z);
 
-    SubChunk &subchunk = theworld[chunkx][chunky][chunkz];
-    subchunk.chunkx = chunkx;
-    subchunk.chunky = chunky;
-    subchunk.chunkz = chunkz;
+    SubChunk *subchunk = theworld[chunkx][chunky][chunkz];
+    subchunk->chunkx = chunkx;
+    subchunk->chunky = chunky;
+    subchunk->chunkz = chunkz;
 
-    subchunk.set_type_at(x,y,z, type);
+    subchunk->set_type_at(x,y,z, type);
 }
 
 uint8_t
@@ -129,18 +193,22 @@ MinecraftWorld::get_type_at(int realx, int realy, int realz)
     }
 
     // a return value of 0 means undefined. It's not in the database
-    return theworld[chunkx][chunky][chunkz].get_type_at(x,y,z);
+    return theworld[chunkx][chunky][chunkz]->get_type_at(x,y,z);
 
 }
 
 
-SubChunk &
+SubChunk *
 MinecraftWorld::get_sub_chunk(int chunkx, int chunky, int chunkz)
 {
-    SubChunk &subchunk = theworld[chunkx][chunky][chunkz];
-    subchunk.chunkx = chunkx;
-    subchunk.chunky = chunky;
-    subchunk.chunkz = chunkz;
+    if (theworld[chunkx][chunky].find(chunkz) == theworld[chunkx][chunky].end()) {
+        theworld[chunkx][chunky][chunkz] = new SubChunk();
+    }
+
+    SubChunk *subchunk = theworld[chunkx][chunky][chunkz];
+    subchunk->chunkx = chunkx;
+    subchunk->chunky = chunky;
+    subchunk->chunkz = chunkz;
     return subchunk;
 }
 

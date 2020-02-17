@@ -4,6 +4,53 @@
 #include <vector>
 #include <cassert>
 
+std::set<std::string> earthly_types = {
+    "minecraft:bedrock",
+    "minecraft:cobblestone",
+    "minecraft:dirt",
+    "minecraft:farmland",
+    "minecraft:mossy_cobblestone",
+    "minecraft:sand",
+    "minecraft:sandstone",
+    "minecraft:stone",
+    "minecraft:stonebrick",
+    "minecraft:gravel",
+    "minecraft:clay",
+};
+
+std::set<std::string> liquid_types = {
+    "minecraft:flowing_lava",
+    "minecraft:flowing_water",
+    "minecraft:lava",
+    "minecraft:magma",
+    "minecraft:water"
+};
+
+void BlockType::add_string(std::string tagname, std::string value) {
+    // this is not a generic nbt parser. this is a minecraft
+    // parser. If the current string tag has an nbt name "name",
+    // it's the name of the palette entry.
+    if (tagname == "name") {
+        name = value;
+
+        if (earthly_types.find(name) != earthly_types.end()) {
+            earthly = true;
+        }
+        if (liquid_types.find(name) != liquid_types.end()) {
+            liquid = true;
+        }
+        if (name == "minecraft:air") {
+            air = true;
+        }
+    } else if ((tagname == "stone_type") || (tagname == "dirt_type")) {
+        stone_dirt_type = value;
+    } else {
+        NBTObject::add_string(tagname, value);
+    }
+}
+
+
+
 // seems like there'd be something like this in stl
 int mycmp(const std::string &a, const std::string &b) { return a.compare(b); }
 
@@ -100,7 +147,7 @@ void BlockType::print_block_types()
         }
     }
     for(auto iter : palette) {
-        std::cout << iter.first << " count: " << bt_by_id[iter.second].count << " " <<
+        std::cout << iter.first << " id: " << iter.second  << " count: " << bt_by_id[iter.second].count << " " <<
             (double)bt_by_id[iter.second].count / total_blocks * 100.0 << "% " <<
             (double)bt_by_id[iter.second].count / total_non_air * 100.0 << "% non air " <<
             "\n";

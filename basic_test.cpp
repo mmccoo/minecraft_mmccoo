@@ -7,6 +7,8 @@
 #include <VillageJSON.h>
 #include <BiomeVectors.h>
 #include <ElevationVectors.h>
+#include <CaveVectors.h>
+#include <ResourceVectors.h>
 
 #include <fstream>
 #include <iomanip>
@@ -19,11 +21,12 @@ int main(int argc, char** argv) {
     MinecraftWorld world;
 
     //std::string dbpath = "/bubba/electronicsDS/minecraft/sampledata/2019.11.26.04.00.53/worlds/Bedrock level/db";
-    std::string dbpath = "/bubba/electronicsDS/minecraft/sampledata/2020.02.04.04.00.53/worlds/Bedrock level/db";
+    //std::string dbpath = "/bubba/electronicsDS/minecraft/sampledata/2020.02.04.04.00.53/worlds/Bedrock level/db";
     // http://www.trulybedrock.com/downloads/
     //std::string dbpath = "/bubba/electronicsDS/minecraft/sampledata/TBSeason0/db";
-
+    std::string dbpath = "/bubba/electronicsDS/minecraft/sampledata/myserver_feb_13/Bedrock level/db";
     parse_bedrock(dbpath, world);
+    BlockType::print_block_types();
 
 # if 0
     std::cout << "iterating locations\n";
@@ -52,7 +55,15 @@ int main(int argc, char** argv) {
         }
     }
 #endif
+    {
+        ResourceVectors resourcevectors(world);
+        resourcevectors.write("map/resources.json");
+    }
 
+    {
+        CaveVectors cavevectors(world);
+        cavevectors.write("map/caves.json");
+    }
 
     boost::filesystem::create_directory("map");
 
@@ -74,7 +85,7 @@ int main(int argc, char** argv) {
 
     // elevation stuff generates really large files. 100MB+ for a not that large world.
     if (0) {
-        ElevationVectors evectors;
+        ElevationVectors evectors(world);
         for(auto it1 : world.chunk_elevation) {
             int chunkx = it1.first;
             //if (chunkx%2) { continue; }
@@ -92,6 +103,21 @@ int main(int argc, char** argv) {
                 }
                 std::cout << "\n";
 #endif
+            }
+        }
+        evectors.write("map/elevations.json");
+    }
+
+    if (1) {
+        std::cout << "computing elevations\n";
+        ElevationVectors evectors(world);
+        for(auto it1 : world.top_earthly) {
+            int chunkx = it1.first;
+            //if (chunkx%2) { continue; }
+            for(auto it2 : it1.second) {
+                int chunkz = it2.first;
+                //if (chunkz%2) { continue; }
+                evectors.add_chunk(chunkx, chunkz, it2.second);
             }
         }
         evectors.write("map/elevations.json");

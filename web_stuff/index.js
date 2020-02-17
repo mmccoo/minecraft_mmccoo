@@ -137,6 +137,39 @@ getJSON("./map/biomeproperties.json", function(err, biomeproperties) {
        )
 
 
+// colors based on this: https://de.mathworks.com/help/map/ref/demcmap.html
+var elevation_colors = {
+    0: [0,0,0, 0.5], // bedrock/void black
+    10: [207, 74, 10, 0.5], // lava
+    20: [100, 240, 222, 0.5], // top of diamond level.
+    30: [89, 100, 0, 0.5],
+    40: [93, 0, 100, 0.5],
+    50: [0, 0,   255, 0.5], // deep blue
+    60: [0, 127, 255, 0.5], // lite blue
+    70: [0, 102, 51, 0.5],  // lite green
+    80: [0, 100, 0, 0.5],
+    90: [0, 200, 0, 0.5],
+    100: [0, 200, 0, 0.5],
+    110: [90, 160, 219, 0.5],
+
+    //12: [100, 240, 222], // diamond level.
+    //53: [8,21,180], // water
+    //65: [50, 78, 43], // grass
+    //75: [79, 57, 40], // dirt.
+    //128: [90, 160, 219],
+};
+
+var color_fills = {};
+var cur_color = new FillStyle({ color: elevation_colors[0] });
+
+for(let i=0; i<256; i++) {
+    if (i in elevation_colors) {
+        cur_color = new FillStyle({ color: elevation_colors[i] });
+    }
+
+    color_fills[i] = cur_color;
+}
+
 // yes, this is an awful function. It needs to be cleanedup/refactored/so many things.
 // It's a function because I need the world_info data.
 function build_layers_and_map()
@@ -168,7 +201,6 @@ function build_layers_and_map()
         tileSize: [64,64],
     });
     var res = tilegrid.getResolutions();
-    console.log(res);
 
     var maplayer = new TileLayer({
         opacity: .5,
@@ -281,13 +313,13 @@ function build_layers_and_map()
         colors.push([0, 256*(40-i)/40, 256*i/40]);
     }
     var elevationStyleFunction = function(feature) {
-        var elevation = feature.get('elevation');
+        var elevation = feature.get('elevation') * world_info.y_resolution;
 
         if (elevation >= cspace*2) { elevation = cspace*2 }
 
         return new Style({
             //fill: new FillStyle({ color: [elevation,elevation,elevation,0] }),
-            fill: new FillStyle({ color: colors[elevation] }),
+            fill: color_fills[elevation], //new FillStyle({ color: colors[elevation] }),
             stroke: strokeStyle,
             image: circleStyle,
         });
@@ -302,6 +334,28 @@ function build_layers_and_map()
         visible: true,
         title: "my vectors",
         style: elevationStyleFunction,
+    });
+
+
+    var caveStyleFunction = function(feature) {
+        var elevation = feature.get('elevation')*world_info.y_resolution;
+
+        return new Style({
+            fill: color_fills[elevation],
+            stroke: strokeStyle,
+            image: circleStyle,
+        });
+    }
+
+    const cavesJSONlayer = new VectorImage({
+        source: new SourceVector({
+            url: './map/caves.json',
+            format: new MyGeoJSON(mapyl, mapyh),
+            projection: flatProjection,
+        }),
+        visible: true,
+        title: "my vectors",
+        style: caveStyleFunction,
     });
 
     var mobstyles = {};
@@ -333,6 +387,15 @@ function build_layers_and_map()
         "rabbit",
         "squid",
         "xp_orb",
+        "parrot",
+        "bee",
+        "panda",
+        "ocelot",
+        "witch",
+        "pillager",
+        "wolf",
+        "item",
+        "wandering_trader",
     ]) {
         mobstyles[icon] = new Style({
             fill: fillStyle,
@@ -359,6 +422,13 @@ function build_layers_and_map()
         "squid",
         "dolphin",
         "xp_orb",
+        "parrot",
+        "bee",
+        "panda",
+        "ocelot",
+        "wolf",
+        "item",
+        "wandering_trader",
     ]
 
     mobstyles['other'] = new Style({
@@ -394,12 +464,69 @@ function build_layers_and_map()
         style: entityStyleFunction,
     })
 
+    var resourceStyles = {};
+    for (let icon of [
+        "diamond_ore",
+        "torch",
+        "emerald_ore", // not sure this is the right name.
+        "lapis_ore",
+        "bee_nest",
+        "bell",
+    ]) {
+        resourceStyles[icon] = new Style({
+            fill: fillStyle,
+            stroke: strokeStyle,
+            image: new Icon({
+                src: 'sprites/' + icon + '.png',
+                scale: 0.2,
+            }),
+        })
+
+    };
+    resourceStyles['other'] = new Style({
+        fill: fillStyle,
+        stroke: strokeStyle,
+        image: circleStyle,
+    });
+
+    var showResources = true;
+    var showSurfaceResources = true;
+    var resourceStyleFunction = function(feature) {
+        var type = feature.get("name").substring(10);
+        var surface = feature.get("surface");
+
+        if (!showResources) { return invisibleStyle; }
+        if (!showSurfaceResources && surface) { return invisibleStyle; }
+
+        if (type in resourceStyles) {
+            return resourceStyles[type];
+        } else {
+            console.log("didn't find " + type);
+            return resourceStyles['other'];
+        }
+    }
+
+    const resourceJSONLayer = new VectorImage({
+        source: new SourceVector({
+            url: './map/resources.json',
+            format: new MyGeoJSON(mapyl, mapyh),
+            projection: flatProjection,
+        }),
+        visible: true,
+        title: "my vectors",
+        style: resourceStyleFunction,
+    })
+
+
 
     var block_styles = {}
     for (let icon of [
         "Chest",
         "MobSpawner",
-        "Bed"
+        "Bed",
+        "Beehive",
+        "Furnace",
+        "Hopper",
     ]) {
         block_styles[icon] = new Style({
             fill: fillStyle,
@@ -427,8 +554,10 @@ function build_layers_and_map()
         var type = feature.get("type");
 
         if (type in block_styles) {
+            //console.log("known type is " + type);
             return block_styles[type];
         } else {
+            console.log("unknown type is " + type);
             return block_styles['other'];
         }
     }
@@ -605,7 +734,9 @@ function build_layers_and_map()
 
 
 
-    var mousePositionControl = new MousePosition({});
+    var mousePositionControl = new MousePosition({
+        target: 'mouse-overlay',
+    });
 
     var coordinateFormatFunction = function(coordinate, template, opt_fractionDigits) {
 
@@ -615,9 +746,11 @@ function build_layers_and_map()
         var entities = {};
         var blockentities = {};
         var elevations = [];
+        var caves = [];
 
         var village_sections = []
         var spawners = [];
+        var resources = [];
         map.forEachFeatureAtPixel(pixel, function(feature, layer){
             if (layer == biomesJSONlayer) {
                 biome = feature.get('biome');
@@ -649,7 +782,15 @@ function build_layers_and_map()
             }
 
             if (layer == elevationsJSONlayer) {
-                elevations.push(feature.get("elevation"))
+                elevations.push(feature.get("elevation")*world_info.y_resolution)
+            }
+
+            if (layer == cavesJSONlayer) {
+                caves.push(feature.get("elevation")*world_info.y_resolution)
+            }
+
+            if (layer == resourceJSONLayer) {
+                resources.push(feature.get("name")+":"+feature.get("coords")[1]);
             }
         });
 
@@ -673,21 +814,25 @@ function build_layers_and_map()
         let retval = coordinate[0].toFixed(0) + ", " + coordinate[1].toFixed(0);
         retval += "<br/>" + biome;
         for(let e in entities) {
-            retval += "<br/>" + e + " " + entities[e];
+            retval += "<br/>entities: " + e + " " + entities[e];
 
         }
 
         if (spawners.length) {
-            retval += "<br/>" + spawners.join("<br/>");
+            retval += "<br/>spawners: " + spawners.join("<br/>");
         }
 
         for(let e in blockentities) {
-            retval += "<br/>" + e + " " + blockentities[e];
+            retval += "<br/>blockentities: " + e + " " + blockentities[e];
         }
-        retval += "<br>";
-        retval += village_sections.join("<br>");
+        retval += "<br>villages:";
+        retval += village_sections.join("<br>") + "<br/>";
 
         retval += "elevations " + elevations.join(", ") + "<br/>";
+
+        retval += "caves " + caves.join(", ") + "<br/>";
+
+        retval += "resources " + resources.join("<br/>") + "<br\>";
         return retval;
 
     };
@@ -702,11 +847,13 @@ function build_layers_and_map()
         layers: [
             //maplayer,
             biomesJSONlayer,
+            resourceJSONLayer,
             entitiesJSONLayer,
             blockEntitiesJSONLayer,
             villagesJSONLayer,
             ChunkBoundsLayer,
-            //elevationsJSONlayer,
+            elevationsJSONlayer,
+            cavesJSONlayer,
             SlimeChunkLayer,
             //testJSONlayer,
             //new TileLayer({
@@ -742,6 +889,19 @@ function build_layers_and_map()
 
         case 'showElevations':
             elevationsJSONlayer.setVisible(e.target.checked);
+            break;
+
+        case 'showCaves':
+            cavesJSONlayer.setVisible(e.target.checked);
+            break;
+
+        case 'showResources':
+            resourceJSONLayer.setVisible(e.target.checked);
+            break;
+
+        case 'showSurfaceResources':
+            showSurfaceResources = e.target.checked;
+            resourceJSONLayer.getSource().refresh();
             break;
 
         default:

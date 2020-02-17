@@ -654,6 +654,7 @@ void parse_bedrock(std::string dbpath, MinecraftWorld &world) {
             continue;
         } else if (k.ToString() == "TheEnd") {
             std::cout << "TheEnd\n";
+            continue;
         } else {
 #if 1
             std::cout << "non subchunk " << chunkx << ", " << chunkz << "\n";
@@ -683,7 +684,7 @@ void parse_bedrock(std::string dbpath, MinecraftWorld &world) {
         std::cout << "\n";
 #endif
 
-        SubChunk &curchunk = world.get_sub_chunk(chunkx, chunky, chunkz);
+        SubChunk *curchunk = world.get_sub_chunk(chunkx, chunky, chunkz);
 
         // This format is basically documented in https://minecraft.gamepedia.com/Bedrock_Edition_level_format
         // in the SubChunkPrefix section.
@@ -700,6 +701,13 @@ void parse_bedrock(std::string dbpath, MinecraftWorld &world) {
         int num_storage_blocks = v[curoffset];
         curoffset++;
 
+        if (num_storage_blocks >1) {
+            std::cout << "more storage blocks\n";
+        }
+
+        // what does it mean to have multiple storage blocks?
+        // the cases I've seen just add air water and flowing water.
+        // I'm going to guess it's for waterlogged blocks.
         for(int blocknum=0; blocknum<num_storage_blocks; blocknum++) {
             int storageVersion = v[curoffset];
             curoffset++;
@@ -724,6 +732,7 @@ void parse_bedrock(std::string dbpath, MinecraftWorld &world) {
             int psize = get_intval(v,paletteoffset);
             paletteoffset += 4;
 
+
 #if 0
             std::cout << "palette: (";
             std::cout << psize << ", " << v.size()-paletteoffset << ") ";
@@ -737,6 +746,10 @@ void parse_bedrock(std::string dbpath, MinecraftWorld &world) {
             for(int i=0; i<psize; i++) {
                 BlockType block_type;
                 paletteoffset = parse_nbt_tag(v, paletteoffset, block_type);
+
+                if (blocknum>0) {
+                    std::cout << "blocknum " << blocknum << block_type.get_name() << " " << block_type.get_string() << "\n";
+                }
 
                 BlockType::add_block_type(block_type);
                 int id = BlockType::get_block_type_id(block_type);
@@ -768,8 +781,15 @@ void parse_bedrock(std::string dbpath, MinecraftWorld &world) {
                 int z = ((i>>4) & 0xf);
                 int y = ((i>>0) & 0xf);
 
-                curchunk.set_type_at(x,y,z, block_type_id);
-                BlockType::get_block_type_by_id(block_type_id).incr_count();
+                BlockType &bt = BlockType::get_block_type_by_id(block_type_id);
+                if (blocknum==0) {
+                    curchunk->set_type_at(x,y,z, block_type_id);
+                    bt.incr_count();
+                } else {
+                    if(bt.get_name() != "minecraft:air") {
+                        std::cout << "alternate at " << chunkx*16+x << ", " << chunky*16+y << ", " << chunkz*16+z << bt.get_name() << "\n";
+                    }
+                }
 #endif
 
                 total_blocks++;
@@ -791,4 +811,6 @@ void parse_bedrock(std::string dbpath, MinecraftWorld &world) {
 
     delete iter;
     delete db;
+
+    world.populate_extra();
 }

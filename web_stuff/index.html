@@ -13,19 +13,27 @@
         position: fixed;
         right: 0;
         top: 50%;
+        background-color:rgba(128, 128, 128, 0.5);
         /* this is important to ensure that the buttons get the click events. */
         z-index:9999;
       }
+
+      .ol-mouse-position {
+        background-color:rgba(128, 128, 128, 0.5);
+      }
+
     </style>
   </head>
   <body>
-    <div id="map-overlay">This is an overlay <br/>
-
+    <div id="map-overlay">
       <input type="checkbox" value="showBiomes" checked>Show biomes<br>
       <input type="checkbox" value="showEntities" checked>Show entities <br>
       <input type="checkbox" value="showPassives" checked>Show passives <br>
       <input type="checkbox" value="showSlime" checked>Show Slime <br>
       <input type="checkbox" value="showElevations" checked>Show Elevations <br>
+      <input type="checkbox" value="showCaves" checked>Show Caves <br>
+      <input type="checkbox" value="showResources" checked>Show Resources <br>
+      <input type="checkbox" value="showSurfaceResources" checked>Show Surface Resources <br>
     </div>
     <div id="map">
 

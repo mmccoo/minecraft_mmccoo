@@ -32,9 +32,13 @@ struct cmpPalettes {
 class BlockType : public NBTObject {
   public:
 
-    BlockType() : id(-1), count(0) { /* empty */ };
+    BlockType() : id(-1), count(0), earthly(false), liquid(false), air(false) { /* empty */ };
 
     const std::string &get_name() const { return name; }
+
+    bool is_earthly() { return earthly; }
+    bool is_liquid() { return liquid; }
+    bool is_air() { return air; }
 
     std::string get_string() const;
     std::string lookup_string() const;
@@ -56,6 +60,8 @@ class BlockType : public NBTObject {
         }
     }
 
+    void add_string(std::string tagname, std::string value) override;
+
     void add_int(std::string tagname, int32_t value) override {
         if (tagname == "version") {
             version = value;
@@ -63,18 +69,6 @@ class BlockType : public NBTObject {
             liquid_depth = value;
         } else {
             NBTObject::add_int(tagname, value);
-        }
-    }
-    void add_string(std::string tagname, std::string value) override {
-        // this is not a generic nbt parser. this is a minecraft
-        // parser. If the current string tag has an nbt name "name",
-        // it's the name of the palette entry.
-        if (tagname == "name") {
-            name = value;
-        } else if ((tagname == "stone_type") || (tagname == "dirt_type")) {
-            stone_dirt_type = value;
-        } else {
-            NBTObject::add_string(tagname, value);
         }
     }
 
@@ -95,6 +89,13 @@ private:
     int version;
     int liquid_depth;
 
+    // this represents whether this is a solid block type.
+    // but not just any solid block. one that's part of the ground.
+    // dirt, stone,...
+    bool earthly;
+
+    bool liquid;
+    bool air;
 
 };
 

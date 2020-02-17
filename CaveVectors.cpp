@@ -1,34 +1,56 @@
 
-#include <ElevationVectors.h>
-#include <biome.h>
+
+#include <CaveVectors.h>
 
 #include <sstream>
 #include <fstream>
 
-// this file is basically the same as biome vectors. They should be merged.
 
-ElevationVectors::ElevationVectors(MinecraftWorld &world)
-    : y_resolution(world.y_resolution)
-{
-    /* empty */
-}
+//https://github.com/nlohmann/json#json-as-first-class-data-type
+// this json header is copied from the above github. I don't know how to include
+// a single file as a submodule and the git report itself is pretty large.
+#include <nlohmann/json.hpp>
 
-void ElevationVectors::add_chunk(int chunkx, int chunkz, Grid16 elevation)
+CaveVectors::CaveVectors(MinecraftWorld& world)
 {
-    for(int x=0; x<16; x++) {
-        for(int z=0; z<16; z++) {
-            auto e = elevation[x][z];
-            int xl = (chunkx*16+x);
-            int zl = (chunkz*16+z);
-            int xh = xl + 1;
-            int zh = zl + 1;
-            add_rectangle_to_polygon_set(polysets[e/y_resolution], xl, zl, xh, zh);
+
+    for (auto scix : world.chunks_by_y) {
+        int chunkx = scix.first;
+        UNUSED(chunkx);
+        for (auto sciz : scix.second) {
+            int chunkz = sciz.first;
+            UNUSED(chunkz);
+
+            Grid16 &chunk_top_earthly = world.top_earthly[chunkx][chunkz];
+
+            for (auto sciy : sciz.second) {
+                int chunky = sciy.first;
+                UNUSED(chunky);
+                auto sc = sciy.second;
+
+
+
+                for (auto iter=sc->begin(); iter!=sc->end(); ++iter) {
+                    auto loc = *iter;
+                    // The loc has real world coords.
+                    int rawx = loc.x - chunkx*16;
+                    int rawz = loc.z - chunkz*16;
+
+                    if (loc.y >= chunk_top_earthly[rawx][rawz]) { continue; }
+
+                    BlockType bt = BlockType::get_block_type_by_id(loc.type);
+
+                    if (bt.is_air() || bt.is_liquid()) {
+                        add_rectangle_to_polygon_set(polysets[loc.y/world.y_resolution], loc.x, loc.z, loc.x+1, loc.z+1);
+                    }
+                }
+            }
         }
     }
 }
 
 
-void ElevationVectors::write(std::string filename)
+void CaveVectors::write(std::string filename)
 {
     nlohmann::json top;
 
@@ -36,7 +58,6 @@ void ElevationVectors::write(std::string filename)
 
     PolygonHolesSet prev;
     for(auto iter = polysets.rbegin(); iter!=polysets.rend(); iter++) {
-        //for(auto ps : polysets) {
         int elevation = (*iter).first;
 
         // we're going from upper elevations on down. each layer, merge in the polys from above.
@@ -58,12 +79,7 @@ void ElevationVectors::write(std::string filename)
 #endif
 
         for (auto poly : merged) {
-            // if a poly simplifies to nothing.
-#if 0
-            std::optional<nlohmann::json> coords = polygon_to_json_simplified(poly);
-#else
             std::optional<nlohmann::json> coords = polygon_to_json(poly);
-#endif
             if (!coords) { continue; }
 
             nlohmann::json feature;
