@@ -13,10 +13,40 @@
 #include <fstream>
 #include <iomanip>
 #include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
 
 #define UNUSED(x) (void)(x)
 
 int main(int argc, char** argv) {
+
+    std::string dbpath;
+    boost::program_options::options_description cmdline_options("Allowed options");
+    cmdline_options.add_options()
+        ("help", "produce this help message")
+
+        ("db_path",
+         boost::program_options::value<std::string>(&dbpath),
+         "input db path")
+        ;
+
+    boost::program_options::variables_map vm;
+    try {
+        boost::program_options::store(boost::program_options::command_line_parser(argc, argv)
+                                      .options(cmdline_options)
+                                      .run(),
+                                      vm);
+        boost::program_options::notify(vm);
+    } catch (std::exception &e) {
+        std::cout  << e.what() << "\n";
+        std::cout << cmdline_options << "\n";
+        return 1;
+    }
+
+    if (dbpath.empty()) {
+        std::cout << "please give the path to your db directory.\n";
+        std::cout << cmdline_options << "\n";
+        return 1;
+    }
 
     MinecraftWorld world;
 
@@ -24,7 +54,8 @@ int main(int argc, char** argv) {
     //std::string dbpath = "/bubba/electronicsDS/minecraft/sampledata/2020.02.04.04.00.53/worlds/Bedrock level/db";
     // http://www.trulybedrock.com/downloads/
     //std::string dbpath = "/bubba/electronicsDS/minecraft/sampledata/TBSeason0/db";
-    std::string dbpath = "/bubba/electronicsDS/minecraft/sampledata/myserver_feb_13/Bedrock level/db";
+    //std::string dbpath = "/bubba/electronicsDS/minecraft/sampledata/myserver_feb_13/Bedrock level/db";
+
     parse_bedrock(dbpath, world);
     BlockType::print_block_types();
 
