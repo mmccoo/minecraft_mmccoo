@@ -5,7 +5,8 @@
 #include <set>
 #include <fstream>
 #include <cmath>
-
+//#include <ctime>
+#include <chrono>
 
 //https://github.com/nlohmann/json#json-as-first-class-data-type
 // this json header is copied from the above github. I don't know how to include
@@ -112,6 +113,12 @@ void MinecraftWorld::write_world_json(std::string filename)
     top["max_tile_level"] = max_tile_level;
     top["tile_0_size"] = pow(2, max_tile_level)*16;
     top["y_resolution"] = y_resolution;
+
+    auto end = std::chrono::system_clock::now();
+    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+
+    top["update_time"] = std::ctime(&end_time);
+
 
     std::ofstream file;
     file.open(filename);

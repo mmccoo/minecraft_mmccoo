@@ -865,6 +865,11 @@ function build_layers_and_map()
 
     const interactionElements = document.querySelectorAll('#map-overlay > input');
 
+    const time_report = document.querySelectorAll('#map-overlay > #time_report');
+    for (let tr of time_report) {
+        tr.innerHTML = world_info.update_time;
+    }
+
     function onInteractionClick(e) {
         console.log(e);
         switch(e.target.value) {
